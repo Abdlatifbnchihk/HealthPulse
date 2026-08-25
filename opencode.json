@@ -1,0 +1,26 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "laravel-boost": {
+            "type": "local",
+            "enabled": true,
+            "command": [
+                "php",
+                "artisan",
+                "boost:mcp"
+            ],
+            "cwd": "C:\\Users\\pc\\Desktop\\learn php\\htdocs\\healthpulse"
+        },
+        "jira": {
+            "type": "local",
+            "enabled": true,
+            "command": ["npx", "-y", "mcp-jira-scoped"],
+            "environment": {
+                "JIRA_INSTANCE": "abdellatifbencheikh43",
+                "JIRA_USER_EMAIL": "abdellatifbencheikh43@gmail.com",
+                "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}",
+                "JIRA_SCOPES": "read:jira-work,write:jira-work"
+            }
+        }
+    }
+}

@@ -1,0 +1,63 @@
+project:
+  name: HealthPulse
+  type: Multi-Tenant Medical Scheduling SaaS
+  version: 1.0.0
+
+stack:
+  frontend: React.js + Tailwind CSS
+  backend: Laravel 13 (PHP 8.3)
+  database: MySQL 8.0
+  caching: Redis
+  ai_engine: OpenAI / Claude API
+
+architecture:
+  multi_tenancy:
+    strategy: Single Database with tenant_id Scope
+    isolation_rule: "Every database query must apply a global Scope on tenant_id derived from the authenticated user."
+  concurrency_control:
+    booking: Optimistic locking with Redis locks to prevent double-booking same slot.
+
+database_schema:
+  tables:
+    - name: Tenants
+      pk: id
+      fields: [id, name, slug, subscription_status, trial_ends_at]
+      role: Isolates clinics and manages SaaS billing state.
+
+    - name: Users
+      pk: id
+      fk: [tenant_id -> Tenants.id (NULLABLE)]
+      fields: [id, tenant_id, email, name, password, role, phone]
+      roles_allowed: [super_admin, doctor, patient]
+
+    - name: Doctor_profiles
+      pk: id
+      fk: [user_id -> Users.id (UNIQUE), tenant_id -> Tenants.id]
+      fields: [id, user_id, tenant_id, specialty, consultation_fee, slot_duration]
+
+    - name: Doctor_schedules
+      pk: id
+      fk: [doctor_id -> Users.id, tenant_id -> Tenants.id]
+      fields: [id, doctor_id, tenant_id, day_of_week, start_time, end_time, slot_duration_minutes, is_active]
+      note: "day_of_week uses TINYINT (1=Monday, 7=Sunday)."
+
+    - name: Appointments
+      pk: id
+      fk: [tenant_id -> Tenants.id, patient_id -> Users.id, doctor_id -> Users.id]
+      fields: [id, tenant_id, patient_id, doctor_id, appointment_date, start_time, end_time, status, notes]
+      status_enum: [pending, confirmed, completed, canceled]
+
+    - name: Ai_patient_intakes
+      pk: id
+      fk: [appointment_id -> Appointments.id (UNIQUE), tenant_id -> Tenants.id]
+      fields: [id, appointment_id, tenant_id, raw_symptoms, ai_summary, urgency]
+
+    - name: Consultation_records
+      pk: id
+      fk: [appointment_id -> Appointments.id (UNIQUE), tenant_id -> Tenants.id]
+      fields: [id, appointment_id, tenant_id, raw_notes, soap_subjective, soap_objective, soap_assessment, soap_plan]
+
+jira_mcp_config:
+  epic_naming: "[HealthPulse] - Feature Module"
+  task_format: "STORY: [Module] - Action"
+  subtask_format: "SUBTASK: [Technical Task]"
