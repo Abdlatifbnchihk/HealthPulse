@@ -22,6 +22,8 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+    protected $fill
     protected function casts(): array
     {
         return [
