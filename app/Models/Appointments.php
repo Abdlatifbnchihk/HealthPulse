@@ -57,7 +57,7 @@ class Appointments extends Model
     }
 
     public function consultationRecord(): HasOne {
-        return $this->hasOne(ConsultationRecord::class);
+        return $this->hasOne(ConsultationRecords::class);
     }
 
 

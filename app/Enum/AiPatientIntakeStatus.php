@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-enum AiPatientIntakeStatus
+enum AiPatientIntakeStatus: string
 {
     //
     case Low = 'low';
