@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreAiPatientIntakeControllerRequest extends FormRequest
 {
@@ -35,12 +34,7 @@ class StoreAiPatientIntakeControllerRequest extends FormRequest
                 'integer',
                 'exists:tenants,id',
             ],
-            'row_symptoms' => ['nullable', 'string'],
-            'ai_summary' => ['nullable', 'string'],
-            'urgency' => [
-                'nullable',
-                Rule::in(['low', 'medium', 'high', 'critical']),
-            ],
+            'row_symptoms' => ['required', 'string'],
         ];
     }
 }

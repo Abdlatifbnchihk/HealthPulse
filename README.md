@@ -21,6 +21,19 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## AI patient intake
+
+The authenticated `POST /api/v1/ai-patient-in-take` endpoint accepts `appointment_id`,
+`tenant_id`, and `row_symptoms`. It generates `ai_summary` and `urgency` using the
+Groq provider through Laravel's AI SDK; those generated fields should not be sent by
+the client. Set `GROQ_API_KEY` in your local environment before using the endpoint.
+Keep provider credentials out of source control.
+
+Patient symptoms are sent to the configured AI provider for analysis. Confirm that
+your provider and data-handling settings are appropriate for health information.
+The generated urgency is only an intake aid and is not a diagnosis or substitute for
+review by a qualified clinician.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

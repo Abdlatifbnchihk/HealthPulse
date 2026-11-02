@@ -7,6 +7,7 @@ use App\Models\AiPatientIntake;
 use App\Http\Requests\StoreAiPatientIntakeControllerRequest;
 use App\Http\Requests\UpdateAiPatientIntakeControllerRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Jobs\ProcessAiIntake;
 
 class AiPatientIntakeController
 {
@@ -33,17 +34,19 @@ class AiPatientIntakeController
         //
         $this->authorize('create', AiPatientIntake::class);
 
-        $validate = $request->validated();
+        $validated = $request->validated();
 
         $aiPatientIntake = AiPatientIntake::create([
-            'appointment_id' => $validate['appointment_id'],
-            'tenant_id' => $validate['tenant_id'],
-            'row_symptoms' => $validate['row_symptoms'],
-            'ai_summary' => $validate['ai_summary'],
-            'urgency' => $validate['urgency'],
+            'appointment_id' => $validated['appointment_id'],
+            'tenant_id' => $validated['tenant_id'],
+            'row_symptoms' => $validated['row_symptoms'],
         ]);
 
-        return (new AiPatientIntakeResource($aiPatientIntake))->response();
+        ProcessAiIntake::dispatch($aiPatientIntake);
+
+        return (new AiPatientIntakeResource($aiPatientIntake))
+            ->response()
+            ->setStatusCode(202);
     }
 
     /**
