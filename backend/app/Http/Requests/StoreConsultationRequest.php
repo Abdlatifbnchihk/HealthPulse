@@ -33,11 +33,7 @@ class StoreConsultationRequest extends FormRequest
                     ->where('tenant_id', $this->input('tenant_id')),
             ],
             'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
-            'row_notes' => ['nullable', 'string'],
-            'soap_subjective' => ['required', 'string'],
-            'soap_objective' => ['required', 'string'],
-            'soap_assessment' => ['required', 'string'],
-            'soap_plan' => ['required', 'string'],
+            'row_notes' => ['required', 'string'],
         ];
     }
 }

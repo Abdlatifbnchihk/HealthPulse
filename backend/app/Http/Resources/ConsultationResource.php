@@ -23,6 +23,7 @@ class ConsultationResource extends JsonResource
             'soap_objective' => $this->soap_objective,
             'soap_assessment' => $this->soap_assessment,
             'soap_plan' => $this->soap_plan,
+            'soap_status' => $this->soap_status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -18,7 +18,8 @@ class ConsultationRecords extends Model
         'soap_subjective',
         'soap_objective',
         'soap_assessment',
-        'soap_plan'
+        'soap_plan',
+        'soap_status',
     ];
 
     public function appointment() {

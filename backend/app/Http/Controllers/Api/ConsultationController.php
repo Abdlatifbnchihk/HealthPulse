@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\ConsultationResource;
-use App\Models\Consultation;
 use App\Http\Requests\StoreConsultationRequest;
 use App\Http\Requests\UpdateConsultationRequest;
+use App\Jobs\ProcessConsultationRecord;
 use App\Models\ConsultationRecords;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -34,19 +34,19 @@ class ConsultationController
         //
         $this->authorize('create', ConsultationRecords::class);
 
-        $validate = $request->validated();
-
-        $consultationRecords = ConsultationRecords::create([
-            'appointment_id' => $validate['appointment_id'],
-            'tenant_id' => $validate['tenant_id'],
-            'row_notes' => $validate['row_notes'],
-            'soap_subjective' => $validate['soap_subjective'],
-            'soap_objective' => $validate['soap_objective'],
-            'soap_assessment' => $validate['soap_assessment'],
-            'soap_plan' => $validate['soap_plan'],
+        $validated = $request->validated();
+        $consultationRecord = ConsultationRecords::create([
+            'appointment_id' => $validated['appointment_id'],
+            'tenant_id' => $validated['tenant_id'],
+            'row_notes' => $validated['row_notes'],
+            'soap_status' => 'pending',
         ]);
 
-        return (new ConsultationResource($consultationRecords))->response();
+        ProcessConsultationRecord::dispatch($consultationRecord);
+
+        return (new ConsultationResource($consultationRecord))
+            ->response()
+            ->setStatusCode(202);
     }
 
     /**

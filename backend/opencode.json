@@ -9,7 +9,7 @@
                 "artisan",
                 "boost:mcp"
             ],
-            "cwd": "C:\\Users\\pc\\Desktop\\learn php\\htdocs\\healthpulse"
+            "cwd": "C:\\Users\\pc\\Desktop\\learn php\\htdocs\\healthpulse\\backend"
         },
         "jira": {
             "type": "local",
