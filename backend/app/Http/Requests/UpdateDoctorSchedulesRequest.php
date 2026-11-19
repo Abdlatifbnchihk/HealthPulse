@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enum\RegisterUserRolesEnums;
+use App\Models\DoctorSchedules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,7 +15,15 @@ class UpdateDoctorSchedulesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $schedule = $this->route('doctorSchedules');
+
+        return $user?->role === RegisterUserRolesEnums::Super_admin
+            || (
+                $user?->role === RegisterUserRolesEnums::Doctor
+                && $schedule instanceof DoctorSchedules
+                && $schedule->doctor_profile?->user_id === $user->id
+            );
     }
 
     /**
@@ -24,24 +34,11 @@ class UpdateDoctorSchedulesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'doctor_profile_id' => [
-                'sometimes',
-                'required',
-                'integer',
-                Rule::exists('doctor_profiles', 'id')
-                    ->where('tenant_id', $this->input('tenant_id')),
-            ],
-            'tenant_id' => [
-                'sometimes',
-                'required',
-                'integer',
-                'exists:tenants,id',
-            ],
             'day_of_week' => [
                 'sometimes',
                 'required',
                 'integer',
-                'between:0,6',
+                'between:1,7',
             ],
             'start_time' => [
                 'sometimes',

@@ -18,7 +18,22 @@ class AppointmentsResource extends JsonResource
             'id' => $this->id,
             'tenant_id' => $this->tenant_id,
             'patient_id' => $this->patient_id,
+            'patient' => $this->whenLoaded('user', function () {
+                return $this->user
+                    ? ['name' => $this->user->name]
+                    : null;
+            }),
             'doctor_profile_id' => $this->doctor_profile_id,
+            'doctor' => $this->whenLoaded('doctorProfil', function () {
+                if (! $this->doctorProfil) {
+                    return null;
+                }
+
+                return [
+                    'name' => $this->doctorProfil->user?->name,
+                    'specialty' => $this->doctorProfil->specialty,
+                ];
+            }),
             'appointment_date' => $this->appointment_date,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,

@@ -14,7 +14,8 @@ class AppointmentsPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === RegisterUserRolesEnums::Super_admin;
+        return $user->role === RegisterUserRolesEnums::Super_admin
+            || $user->role === RegisterUserRolesEnums::Patient;
     }
 
     /**
@@ -30,7 +31,8 @@ class AppointmentsPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === RegisterUserRolesEnums::Super_admin;
+        return $user->role === RegisterUserRolesEnums::Super_admin
+            || $user->role === RegisterUserRolesEnums::Patient;
     }
 
     /**

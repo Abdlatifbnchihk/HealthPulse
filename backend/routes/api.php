@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\AiPatientIntakeController;
 use App\Http\Controllers\Api\DoctorSchedulesController;
+use App\Http\Controllers\Api\DoctorDashboardController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\DoctorProfileControlle;
 use App\Http\Controllers\Api\ConsultationController;
+use App\Http\Controllers\Api\PatientDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -20,9 +22,12 @@ Route::prefix('v1')->group(function () {
     // Auth routes (public)
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::get('/clinics', [TenantController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function() {
         Route::delete('/auth/logout', [AuthController::class, 'logout']);
+        Route::get('patient/dashboard', [PatientDashboardController::class, 'show']);
+        Route::get('doctor/dashboard', [DoctorDashboardController::class, 'show']);
 
         // Tenants
         Route::post('tenants', [TenantController::class, 'store']);
@@ -30,16 +35,21 @@ Route::prefix('v1')->group(function () {
         Route::patch('tenants/{tenant}', [TenantController::class, 'update']);
         Route::delete('tenants/{tenants}', [TenantController::class, 'destroy']);
         // Appointments
+        Route::get('appointments', [AppointmentController::class, 'index']);
         Route::post('appointments', [AppointmentController::class, 'store']);
         Route::get('appointments/{appointment}', [AppointmentController::class, 'show']);
         Route::patch('appointments/{appointment}', [AppointmentController::class, 'update']);
         Route::delete('appointments/{appointment}', [AppointmentController::class, 'destroy']);
+        Route::get('doctor-directory', [DoctorProfileControlle::class, 'index']);
+        Route::get('doctor-directory/{doctorProfile}', [DoctorProfileControlle::class, 'showDirectory']);
+        Route::get('doctor-directory/{doctorProfile}/availability', [DoctorProfileControlle::class, 'availability']);
         // Doctor Profile
         Route::post('doctor-profile', [DoctorProfileControlle::class, 'store']);
         Route::get('doctor-profile/{doctorProfile}', [DoctorProfileControlle::class, 'show']);
         Route::patch('doctor-profile/{doctorProfile}', [DoctorProfileControlle::class, 'update']);
         Route::delete('doctor-profile/{doctorProfile}', [DoctorProfileControlle::class, 'destroy']);
         // Ai Patient In Take 
+        Route::get('ai-patient-in-take', [AiPatientIntakeController::class, 'index']);
         Route::post('ai-patient-in-take', [AiPatientIntakeController::class ,'store']); 
         Route::get('ai-patient-in-take/{aiPatientIntake}', [AiPatientIntakeController::class ,'show']); 
         Route::patch('ai-patient-in-take/{aiPatientIntake}', [AiPatientIntakeController::class ,'update']); 
@@ -50,10 +60,10 @@ Route::prefix('v1')->group(function () {
         Route::patch('doctor-schedules/{doctorSchedules}', [DoctorSchedulesController::class, 'update']);
         Route::delete('doctor-schedules/{doctorSchedules}', [DoctorSchedulesController::class, 'destroy']);
         // Consultation Records
+        Route::get('consultation-records', [ConsultationController::class, 'index']);
         Route::post('consultation-records', [ConsultationController::class, 'store']);
         Route::get('consultation-records/{consultationRecords}', [ConsultationController::class, 'show']);
         Route::patch('consultation-records/{consultationRecords}', [ConsultationController::class, 'update']);
         Route::delete('consultation-records/{consultationRecords}', [ConsultationController::class, 'destroy']);
     });
 });
-

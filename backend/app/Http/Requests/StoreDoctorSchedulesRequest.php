@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enum\RegisterUserRolesEnums;
+use App\Models\DoctorProfile;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,7 +15,17 @@ class StoreDoctorSchedulesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        if ($user?->role === RegisterUserRolesEnums::Super_admin) {
+            return true;
+        }
+
+        return $user?->role === RegisterUserRolesEnums::Doctor
+            && DoctorProfile::query()
+                ->whereKey($this->input('doctor_profile_id'))
+                ->where('user_id', $user->id)
+                ->where('tenant_id', $this->input('tenant_id'))
+                ->exists();
     }
 
     /**
@@ -31,7 +43,7 @@ class StoreDoctorSchedulesRequest extends FormRequest
                     ->where('tenant_id', $this->input('tenant_id')),
             ],
             'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
-            'day_of_week' => ['required', 'integer', 'between:0,6'],
+            'day_of_week' => ['required', 'integer', 'between:1,7'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'slot_duration_minutes' => [

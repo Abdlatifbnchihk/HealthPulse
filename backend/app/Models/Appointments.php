@@ -45,11 +45,11 @@ class Appointments extends Model
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'patient_id');
     }
 
     public function doctorProfil(): BelongsTo{
-        return $this->belongsTo(DoctorProfile::class);
+        return $this->belongsTo(DoctorProfile::class, 'doctor_profile_id');
     }
 
     public function aiPatientIntake(): HasOne {

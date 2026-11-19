@@ -18,9 +18,9 @@ class TenantController
     public function index()
     {
         //
-        $this->authorize('viewAny', Tenants::class);
+        // $this->authorize('viewAny', Tenants::class);
 
-        $tenants = Tenants::all();
+        $tenants = Tenants::all()->whereIn('subscription_status', ['active', 'trialing']);
 
         return TenantResourse::collection($tenants)->response();
     }

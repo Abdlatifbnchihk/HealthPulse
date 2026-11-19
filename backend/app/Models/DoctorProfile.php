@@ -29,6 +29,6 @@ class DoctorProfile extends Model
     }
 
     public function schedules(){
-        return $this->hasMany(DoctorSchedule::class);
+        return $this->hasMany(DoctorSchedules::class);
     }
 }

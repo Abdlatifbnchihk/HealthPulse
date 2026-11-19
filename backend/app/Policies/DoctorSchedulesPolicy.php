@@ -30,7 +30,8 @@ class DoctorSchedulesPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === RegisterUserRolesEnums::Super_admin;
+        return $user->role === RegisterUserRolesEnums::Super_admin
+            || $user->role === RegisterUserRolesEnums::Doctor;
     }
 
     /**
@@ -38,7 +39,11 @@ class DoctorSchedulesPolicy
      */
     public function update(User $user, DoctorSchedules $doctorSchedules): bool
     {
-        return $user->role === RegisterUserRolesEnums::Super_admin || $user->tenant_id === $doctorSchedules->tenant_id;
+        return $user->role === RegisterUserRolesEnums::Super_admin
+            || (
+                $user->role === RegisterUserRolesEnums::Doctor
+                && $doctorSchedules->doctor_profile?->user_id === $user->id
+            );
     }
 
     /**
@@ -46,7 +51,11 @@ class DoctorSchedulesPolicy
      */
     public function delete(User $user, DoctorSchedules $doctorSchedules): bool
     {
-        return $user->role === RegisterUserRolesEnums::Super_admin || $user->tenant_id === $doctorSchedules->tenant_id;
+        return $user->role === RegisterUserRolesEnums::Super_admin
+            || (
+                $user->role === RegisterUserRolesEnums::Doctor
+                && $doctorSchedules->doctor_profile?->user_id === $user->id
+            );
     }
 
     /**

@@ -92,6 +92,7 @@ class BookingService
                     'start_time' => $startTime,
                     'end_time' => $endTime,
                     'status' => AppointmentsStatus::Confirmed,
+                    'notes' => $data['notes'] ?? null,
                 ]);
             });
         } finally {

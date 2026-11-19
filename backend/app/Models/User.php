@@ -32,7 +32,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'tenant_id',
-        'role'
+        'role',
     ];
 
     protected $hidden = [

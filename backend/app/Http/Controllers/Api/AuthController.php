@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\DoctorProfile;
 use Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
@@ -17,14 +19,29 @@ class AuthController
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $user = User::create([
-            'name' => trim($validated['first_name'] . ' ' . $validated['last_name']),
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'password' => $validated['password'],
-            'tenant_id' => $validated['tenant_id'],
-            'role' => $validated['role']
-        ]);
+        [$user, $doctorProfile] = DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'name' => trim($validated['first_name'] . ' ' . $validated['last_name']),
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => $validated['password'],
+                'tenant_id' => $validated['tenant_id'] ?? null,
+                'role' => $validated['role'],
+            ]);
+
+            $doctorProfile = null;
+            if ($validated['role'] === 'doctor') {
+                $doctorProfile = DoctorProfile::create([
+                    'user_id' => $user->id,
+                    'tenant_id' => $validated['tenant_id'],
+                    'specialty' => $validated['specialty'],
+                    'fee' => $validated['fee'],
+                    'slot_duration' => $validated['slot_duration'],
+                ]);
+            }
+
+            return [$user, $doctorProfile];
+        });
 
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -36,6 +53,7 @@ class AuthController
                 'email' => $user->email,
                 'role' => $user->role
             ],
+            'doctor_profile' => $doctorProfile,
             'token' => $token,
             'token_type' => 'Bearer',
         ], 201);

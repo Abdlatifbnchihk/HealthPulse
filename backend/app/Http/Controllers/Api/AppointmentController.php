@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enum\RegisterUserRolesEnums;
 use App\Http\Requests\AppointmentsRequest;
 use App\Http\Requests\AppointmentsUpdateRequest;
 use App\Http\Resources\AppointmentsResource;
 use App\Models\Appointments;
+use App\Models\DoctorProfile;
+use App\Services\BookingService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class AppointmentController
 {
@@ -16,13 +21,18 @@ class AppointmentController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
-
+        $user = $request->user();
         $this->authorize('viewAny', Appointments::class);
 
-        $appointments = Appointments::all();
+        $appointments = Appointments::query()
+            ->when(
+                $user->role !== RegisterUserRolesEnums::Super_admin,
+                fn ($query) => $query->where('patient_id', $user->id),
+            )
+            ->get();
 
         return AppointmentsResource::collection($appointments)->response();
     }
@@ -30,24 +40,42 @@ class AppointmentController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(AppointmentsRequest $request)
+    public function store(AppointmentsRequest $request, BookingService $bookingService)
     {
-        //
-        $validate = $request->validated();
-        
-        $appointment = Appointments::create([
-            'tenant_id' => $validate['tenant_id'],
-            'patient_id' => $validate['patient_id'],
-            'doctor_profile_id' => $validate['doctor_profile_id'],
-            'appointment_date' => $validate['appointment_date'],
-            'start_time' => $validate['start_time'],
-            'end_time' => $validate['end_time'],
-            'notes' => $validate['notes']
-        ]);
-
         $this->authorize('create', Appointments::class);
 
-        return (new AppointmentsResource($appointment))->response();
+        $validated = $request->validated();
+        $user = $request->user();
+        $doctorProfile = DoctorProfile::query()->findOrFail($validated['doctor_profile_id']);
+
+        if (
+            $user->role === RegisterUserRolesEnums::Super_admin
+            && (int) $validated['tenant_id'] !== $doctorProfile->tenant_id
+        ) {
+            throw ValidationException::withMessages([
+                'tenant_id' => ['The selected clinic does not match the doctor profile.'],
+            ]);
+        }
+
+        try {
+            $appointment = $bookingService->bookAppointment([
+                ...$validated,
+                'tenant_id' => $doctorProfile->tenant_id,
+                'patient_id' => $user->role === RegisterUserRolesEnums::Super_admin
+                    ? $validated['patient_id']
+                    : $user->id,
+            ]);
+        } catch (RuntimeException $exception) {
+            throw ValidationException::withMessages([
+                'start_time' => [$exception->getMessage()],
+            ]);
+        }
+
+        $appointment->load(['user', 'doctorProfil.user']);
+
+        return (new AppointmentsResource($appointment))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**

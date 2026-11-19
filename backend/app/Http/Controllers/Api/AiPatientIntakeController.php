@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enum\RegisterUserRolesEnums;
 use App\Http\Resources\AiPatientIntakeResource;
 use App\Models\AiPatientIntake;
 use App\Http\Requests\StoreAiPatientIntakeControllerRequest;
 use App\Http\Requests\UpdateAiPatientIntakeControllerRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Jobs\ProcessAiIntake;
+use Illuminate\Http\Request;
 
 class AiPatientIntakeController
 {
@@ -16,12 +18,21 @@ class AiPatientIntakeController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
+        $user = $request->user();
         $this->authorize('viewAny', AiPatientIntake::class);
 
-        $aiPatientIntake = AiPatientIntake::all();
+        $aiPatientIntake = AiPatientIntake::query()
+            ->when(
+                $user->role !== RegisterUserRolesEnums::Super_admin,
+                fn ($query) => $query->whereHas(
+                    'appointments',
+                    fn ($appointmentQuery) => $appointmentQuery->where('patient_id', $user->id),
+                ),
+            )
+            ->get();
 
         return AiPatientIntakeResource::collection($aiPatientIntake)->response();
     }

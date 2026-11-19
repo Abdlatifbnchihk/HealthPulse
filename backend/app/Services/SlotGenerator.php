@@ -46,6 +46,7 @@ class SlotGenerator
             ->whereDate('appointment_date', $date->toDateString())
             ->where('status', '!=', AppointmentsStatus::Canceled->value)
             ->get();
+        $now = Carbon::now(config('app.timezone'));
 
         $slots = [];
 
@@ -64,12 +65,13 @@ class SlotGenerator
                 // Overlap condition: (StartA < EndB) AND (EndA > StartB)
                 return $slotStart->lt($appEnd) && $slotEnd->gt($appStart);
             });
+            $hasAlreadyPassed = $slotStart->lt($now);
 
             // 8. Build the slot object
             $slots[] = [
                 'start' => $slotStart->format('H:i'),
                 'end' => $slotEnd->format('H:i'),
-                'available' => ! $isBooked,
+                'available' => ! $isBooked && ! $hasAlreadyPassed,
             ];
 
             // Move forward to the next slot block

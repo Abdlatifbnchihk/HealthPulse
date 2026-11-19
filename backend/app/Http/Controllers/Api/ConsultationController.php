@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enum\RegisterUserRolesEnums;
 use App\Http\Resources\ConsultationResource;
 use App\Http\Requests\StoreConsultationRequest;
 use App\Http\Requests\UpdateConsultationRequest;
 use App\Jobs\ProcessConsultationRecord;
 use App\Models\ConsultationRecords;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class ConsultationController
 {
@@ -16,12 +18,21 @@ class ConsultationController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
+        $user = $request->user();
         $this->authorize('viewAny', ConsultationRecords::class);
 
-        $consultationRecordes = ConsultationRecords::all();
+        $consultationRecordes = ConsultationRecords::query()
+            ->when(
+                $user->role !== RegisterUserRolesEnums::Super_admin,
+                fn ($query) => $query->whereHas(
+                    'appointment',
+                    fn ($appointmentQuery) => $appointmentQuery->where('patient_id', $user->id),
+                ),
+            )
+            ->get();
 
         return ConsultationResource::collection($consultationRecordes)->response();
     }
